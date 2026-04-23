@@ -1,0 +1,31 @@
+{
+  "name": "ecom-shop",
+  "version": "1.0.0",
+  "description": "Ecommerce Application Built with MERN stack",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "server": "nodemon backend/server.js",
+    "client": "npm start --prefix frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erictaylor103/ecom-shop.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/erictaylor103/ecom-shop/issues"
+  },
+  "homepage": "https://github.com/erictaylor103/ecom-shop#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.4.2",
+    "nodemon": "^3.1.14"
+  }
+}
