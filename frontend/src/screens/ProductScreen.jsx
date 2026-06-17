@@ -1,54 +1,45 @@
-import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import {
-  Row,
-  Col,
-  Image,
-  ListGroup,
-  Card,
-  Button,
-} from "react-bootstrap";
+import { useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useGetProductDetailsQuery } from "../slices/productsApiSlice";
+import { useDispatch } from "react-redux";
+import { Form, Row, Col, Image, ListGroup, Card, Button, ListGroupItem } from "react-bootstrap";
 import Rating from "../components/Rating";
-import axios from "axios";
+import Loader from "../components/Loader";
+import Message from "../components/Message";
+import { addToCart } from '../slices/cartSlice';
 
-const ProductScreen = () => {
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+const ProductScreen = () => {  
 
   const { id: productId } = useParams();
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-        const { data } = await axios.get(`/api/products/${productId}`);
+  const [qty, setQTY] = useState(1);
+  
+  const {
+    data: product, 
+    isLoading, 
+    error,
+  } = useGetProductDetailsQuery(productId);
 
-        setProduct(data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
-        setLoading(false);
-      }
-    };
+  const addToCartHandler = () => {
+    dispatch(addToCart({ ...product, qty }));
 
-    fetchProduct();
-  }, [productId]);
-
-  // LOADING STATE
-  if (loading) return <div>Loading...</div>;
-
-  // ERROR STATE
-  if (error) return <div>{error}</div>;
-
+    navigate(`/cart`);
+  }
+  
   return (
     <>
       <Link className="btn btn-light my-3" to="/">
         Go Back
       </Link>
-
-      <Row>
+      { isLoading ? (
+        <Loader />
+      ) : error ? (
+        <Message variant='danger'>{error?.data?.message || error.error}</Message>
+      ) : (
+        <Row>
         {/* LEFT COLUMN */}
         <Col md={5}>
           <Image src={product.image} alt={product.name} fluid />
@@ -101,11 +92,29 @@ const ProductScreen = () => {
                 </Row>
               </ListGroup.Item>
 
+              {product.countInStock > 0 && (
+                <ListGroup.Item>
+                  <Row>
+                    <Col>QTY</Col>
+                    <Col>
+                      <Form.Control as='select' value={qty} onChange={(e) => setQTY(Number(e.target.value))}>
+                        {[...Array(product.countInStock).keys()].map((x) => (
+                          <option key={ x + 1 } value={ x + 1 }>
+                            { x + 1 }
+                          </option>
+                        ))}
+                      </Form.Control>
+                    </Col>
+                  </Row>
+                </ListGroup.Item>
+              )}
+
               <ListGroup.Item>
                 <Button
                   className="btn-block"
                   type="button"
-                  disabled={product.countInStock === 0}
+                    disabled={product.countInStock === 0}
+                    onClick={addToCartHandler}
                 >
                   Add to Cart
                 </Button>
@@ -115,6 +124,8 @@ const ProductScreen = () => {
           </Card>
         </Col>
       </Row>
+      ) }
+      
     </>
   );
 };
